@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="http://d3js.org/d3.v3.min.js"></script>
+  <script src="http://dimplejs.org/dist/dimple.v2.0.0.min.js"></script>
+  <style>
+    div.attr_buttons div {
+        background-color: rgb(251, 201, 127);
+        padding: 3px;
+        margin: 7px;
+        text-align: center;
+      }
+
+    h2, p {
+      text-align: center;
+    }
+    circle {
+      fill: black;
+      stroke: black;
+      opacity: 0.3;
+    }
+  </style>
+  <script type="text/javascript">
+      function draw(data) {
+      
+      /*
+        D3.js setup code
+      */
+
+          "use strict";
+          // add a title
+          // nest the data to get the number of people for each handedness catagory
+          var nests = d3.nest()
+            .key(function(d) { return d.handedness; })
+            .rollup(function(v) { return v.length; })
+            .entries(data);
+
+          // nest the data to get the average of HR for each handedness catagory
+          var nests_HR = d3.nest()
+            .key(function(d) { return d.handedness; })
+            .rollup(function(v) { 
+                var total_HR = d3.sum(v, function(t){
+                  return t['HR']
+                })
+                var total_num = v.length
+                
+                return total_HR / total_num
+
+              })
+            .entries(data);
+          
+          // nest the data to get the average of avg for each handedness catagory
+          var nests_avg = d3.nest()
+            .key(function(d) { return d.handedness; })
+            .rollup(function(v) { 
+                var total_avg = d3.sum(v, function(t){
+                  return t['avg']
+                })
+                var total_num = v.length
+                
+                return total_avg / total_num
+
+              })
+            .entries(data);
+
+
+          var margin = 75,
+              width = 1400 - margin,
+              height = 600 - margin;
+
+          var svg = d3.select("body")
+            .append("svg")
+              .attr("width", width + margin)
+              .attr("height", height + margin)
+              .style("margin", "auto")
+            .append('g')
+                .attr('class','chart');
+
+          svg.append("text")
+            .attr("x", (width/2))
+            .attr("y", 30)
+            .attr("text-anchor", "middle")
+            .style("font-size", "16px")
+
+      /*
+        Dimple.js Chart construction code
+      */
+          
+          // plot the number of people of each handedness catagory barchat
+          var myChart = new dimple.chart(svg, nests);
+          var x = myChart.addCategoryAxis("x", "key");
+          var y = myChart.addMeasureAxis("y", "values");
+          var s = myChart.addSeries(null, dimple.plot.bar);
+          //y.tickFormat = '.3f';
+          x.title = "惯用手";
+          y.title = "人数";
+          myChart.draw();
+
+
+
+          // plot the avgerate of HR of each handedness catagory barchat
+          var svg1 = new dimple.newSvg("body", 1400, 600);
+          var myChart1 = new dimple.chart(svg1, nests_HR);
+          var x = myChart1.addCategoryAxis("x", "key");
+          var y = myChart1.addMeasureAxis("y", "values");
+          var s = myChart1.addSeries(null, dimple.plot.bar);
+          //y.tickFormat = '.3f';
+          x.title = "惯用手";
+          y.title = "平均全垒得分";
+          myChart1.draw();
+          svg1.append("text")
+            .attr("x", (1400/2))
+            .attr("y", 30)
+            .attr("text-anchor", "middle")
+            .style("font-size", "16px")
+
+
+          // plot the avgerate of avg of each handedness catagory barchat
+          var svg2 = new dimple.newSvg("body", 1400, 600);
+          var myChart2 = new dimple.chart(svg2, nests_avg);
+          var x = myChart2.addCategoryAxis("x", "key");
+          var y = myChart2.addMeasureAxis("y", "values");
+          var s = myChart2.addSeries(null, dimple.plot.bar);
+          myChart2.addSeries(null, dimple.plot.bar);
+          //y.tickFormat = '.3f';
+          x.title = "惯用手";
+          y.title = "平均击球率";
+          myChart2.draw();
+
+
+          var svg3 = new dimple.newSvg("body", 1400, 600);
+          var myChart3 = new dimple.chart(svg3, data);
+          var x = myChart3.addCategoryAxis("x", "weight");
+          var y = myChart3.addMeasureAxis("y", "HR");
+          var s = myChart3.addSeries("name", dimple.plot.scatter);
+
+          //y.tickFormat = '.3f';
+          x.title = "体重";
+          y.title = "全垒得分";
+          myChart3.draw(2000);
+          
+        };
+      </script>
+  </head>
+<body>
+  <script type="text/javascript">
+  /*
+    Use D3 (not dimple.js) to load the TSV file
+    and pass the contents of it to the draw function
+    */
+  d3.csv("baseball_data.csv", draw);
+  </script>
+</body>
+</html>
