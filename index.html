@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <script src="http://d3js.org/d3.v3.min.js"></script>
   <script src="http://dimplejs.org/dist/dimple.v2.0.0.min.js"></script>
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
   <style>
     div.attr_buttons div {
         background-color: rgb(251, 201, 127);
@@ -15,10 +16,15 @@
     h2, p {
       text-align: center;
     }
+    circle {
+      fill: black;
+      stroke: black;
+      opacity: 0.3;
+    }
   </style>
   <script type="text/javascript">
       function draw(data) {
-      
+          
       /*
         D3.js setup code
       */
@@ -42,7 +48,7 @@
             .entries(data);
 
           // nest the data to get the average of HR for each handedness catagory
-          var nests_HR = d3.nest()
+          /*var nests_HR = d3.nest()
             .key(function(d) { return d.handedness; })
             .rollup(function(v) { 
                 var total_HR = d3.sum(v, function(t){
@@ -68,7 +74,7 @@
 
               })
             .entries(data);
-
+          */
 
           var margin = 75,
               width = 1400 - margin,
@@ -93,6 +99,7 @@
       */
           
           // plot the number of people of each handedness catagory barchat
+          
           var myChart = new dimple.chart(svg, nests);
           var x = myChart.addCategoryAxis("x", "key");
           var y = myChart.addMeasureAxis("y", "values");
@@ -101,11 +108,80 @@
           x.title = "惯用手";
           y.title = "人数";
           myChart.draw();
+          
+          // the boxplot function help to plot the graph  
+          function boxplot(data, attr, div_id, title_name){
+              var y0=[],y1=[],y2=[]
+              for (var i = 0; i < data.length; i ++) 
+              {
+                  if(data[i].handedness == "L"){
+                    if (attr == 'HR')
+                      y0[i] = data[i].HR;
+
+                    else
+                      y0[i] = data[i].avg;
+                  }
+                  else if (data[i].handedness == "R"){
+                    if (attr == 'HR')
+                      y1[i] = data[i].HR;
+
+                    else
+                      y1[i] = data[i].avg;
+                  }
+                  else{
+                    if (attr == 'HR')
+                      y2[i] = data[i].HR;
+
+                    else
+                      y2[i] = data[i].avg;
+                  }
+              }
+
+              var Left_hand = {
+                y: y0,
+                marker: {color: '#8FBBDA'},
+                type: 'box',
+                name: 'Left_hand'
+              };
+
+              var right_hand = {
+                y: y1,
+                marker: {color: '#8FBBDA'},
+                type: 'box',
+                name: 'right_hand'
+              };
+
+              var both_hand = {
+                y: y2,
+                marker: {color: '#8FBBDA'},
+                type: 'box',
+                name: 'both_hand'
+              };
+
+              var layout = {
+                title: title_name
+              };
+
+              var tmp = [Left_hand, right_hand, both_hand];
+
+              Plotly.newPlot(div_id, tmp, layout);
+          }
+
+
+          var body = d3.select("body");
+          body.append("div")
+             .attr("id", 'boxplot1');
+          boxplot(data, 'HR', 'boxplot1', "惯用手与全垒得分的箱线图")   
+          
+
+          body.append("div")
+             .attr("id", 'boxplot2');
+          boxplot(data, 'avg', 'boxplot2', "惯用手与击球率的箱线图")
 
 
 
           // plot the avgerate of HR of each handedness catagory barchat
-          var svg1 = new dimple.newSvg("body", 700, 600);
+          /*var svg1 = new dimple.newSvg("body", 1400, 600);
           var myChart1 = new dimple.chart(svg1, nests_HR);
           var x = myChart1.addCategoryAxis("x", "key");
           var y = myChart1.addMeasureAxis("y", "values");
@@ -115,29 +191,31 @@
           y.title = "平均全垒得分";
           myChart1.draw();
           svg1.append("text")
-            .attr("x", (700/2))
+            .attr("x", (1400/2))
             .attr("y", 30)
             .attr("text-anchor", "middle")
             .style("font-size", "16px")
             .text("惯用手与平均全垒得分的关系");
-
+          
           // plot the avgerate of avg of each handedness catagory barchat
-          var svg2 = new dimple.newSvg("body", 700, 600);
+          
+          var svg2 = new dimple.newSvg("body", 1400, 600);
           var myChart2 = new dimple.chart(svg2, nests_avg);
           var x = myChart2.addCategoryAxis("x", "key");
           var y = myChart2.addMeasureAxis("y", "values");
           var s = myChart2.addSeries(null, dimple.plot.bar);
+          myChart2.addSeries(null, dimple.plot.bar);
           //y.tickFormat = '.3f';
           x.title = "惯用手";
           y.title = "平均击球率";
           myChart2.draw();
           svg2.append("text")
-            .attr("x", (700/2))
+            .attr("x", (1400/2))
             .attr("y", 30)
             .attr("text-anchor", "middle")
             .style("font-size", "16px")
             .text("惯用手与平均击球率的关系");
-
+          */
 
 
           // add a title
@@ -166,7 +244,7 @@
                             return d;
                         });
           
-          var svg3 = new dimple.newSvg("body", 1400, 600);
+          //var svg3 = new dimple.newSvg("body", 1400, 600);
           
 
 
@@ -175,22 +253,24 @@
           function update(d){
             if(d == "全垒得分 & 体重"){
                 var t = d3.selectAll("svg")
-                t[0][3].remove();
+                t[0][2].remove();
                 var svg3 = new dimple.newSvg("body", 1400, 600);
                 var myChart3 = new dimple.chart(svg3, data);
                 var x = myChart3.addCategoryAxis("x", "weight");
                 var y = myChart3.addMeasureAxis("y", "HR");
                 var s = myChart3.addSeries("name", dimple.plot.scatter);
+
                 //y.tickFormat = '.3f';
                 x.title = "体重";
                 y.title = "全垒得分";
                 myChart3.draw(2000);
                 d3.selectAll(".dimple-title").style("font-size", "1em");
+
               }
               
               else if(d == "击球率 & 体重"){
                 var t = d3.selectAll("svg")
-                t[0][3].remove(); 
+                t[0][2].remove(); 
                 var svg3 = new dimple.newSvg("body", 1400, 600);
                 var myChart3 = new dimple.chart(svg3, data);
                 var x = myChart3.addCategoryAxis("x", "weight");
@@ -205,7 +285,7 @@
 
               else if(d == "全垒得分 & 身高"){
                 var t = d3.selectAll("svg")
-                t[0][3].remove(); 
+                t[0][2].remove(); 
                 var svg3 = new dimple.newSvg("body", 1400, 600);
                 var myChart3 = new dimple.chart(svg3, data);
                 var x = myChart3.addCategoryAxis("x", "height");
@@ -220,7 +300,7 @@
 
               else{
                 var t = d3.selectAll("svg")
-                t[0][3].remove(); 
+                t[0][2].remove(); 
                 var svg3 = new dimple.newSvg("body", 1400, 600);
                 var myChart3 = new dimple.chart(svg3, data);
                 var x = myChart3.addCategoryAxis("x", "height");
@@ -248,6 +328,7 @@
                 .style("background", "lightBlue")
                 .style("color", "white");
             update(d);
+
           });
           
           
@@ -256,6 +337,7 @@
       </script>
   </head>
 <body>
+  <div id="myDiv"></div>
   <script type="text/javascript">
   /*
     Use D3 (not dimple.js) to load the TSV file
@@ -263,5 +345,6 @@
     */
   d3.csv("baseball_data.csv", draw);
   </script>
+
 </body>
 </html>
